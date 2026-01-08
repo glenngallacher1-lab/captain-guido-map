@@ -1,78 +1,113 @@
-/* =========================
-   🔧 EDIT CHAPTER SETTINGS
-   ========================= */
+/* ==============================
+   EDIT SECTION (TOUCH THIS ONLY)
+   ============================== */
 
+// Total loop duration in seconds
+const TOTAL_ANIMATION_TIME = 20;
+
+// Chapter route (order = story order)
 const chapters = [
-  { name: "Port of Ostia", x: 480, y: 210, unlockTime: 0 },
-  { name: "Cairo", x: 520, y: 220, unlockTime: 6 },
-  { name: "Arabian Sea", x: 600, y: 240, unlockTime: 12 },
-  { name: "Indian Ocean", x: 680, y: 260, unlockTime: 18 },
-  { name: "Philippine Sea", x: 760, y: 280, unlockTime: 24 },
-  { name: "South Pacific", x: 840, y: 300, unlockTime: 30 },
+  { name: "Port of Ostia", coords: [41.73, 12.29], unlocked: true },
+  { name: "Cairo / Red Sea", coords: [30.8, 32.3], unlocked: false },
+  { name: "Arabian Sea", coords: [15, 65], unlocked: false },
+  { name: "Indian Ocean", coords: [-10, 80], unlocked: false },
+  { name: "Philippine Sea", coords: [15, 130], unlocked: false },
+  { name: "South Pacific", coords: [-20, -140], unlocked: false },
+  { name: "North Pacific", coords: [35, -160], unlocked: false },
+  { name: "Bering Sea", coords: [58, -175], unlocked: false },
+  { name: "Arctic Ocean", coords: [75, 0], unlocked: false },
+  { name: "Gulf of America", coords: [25, -90], unlocked: false },
+  { name: "South Atlantic", coords: [-25, -20], unlocked: false },
+  { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: false },
 ];
 
-/*
-🔥 WHEN YOU RELEASE A NEW CHAPTER:
-- add a new object
-- increase unlockTime
-- THAT’S IT
-*/
+/* ==============================
+   MAP SETUP
+   ============================== */
 
-const LOOP_DURATION = 36; // seconds for full loop
+const map = L.map("map", {
+  worldCopyJump: true,
+  zoomControl: false,
+}).setView([20, 0], 2);
 
-/* ========================= */
+L.tileLayer(
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  { attribution: "" }
+).addTo(map);
 
-const svg = document.getElementById("world-map");
-const ship = document.getElementById("ship");
-const path = document.getElementById("route-path");
-const nodesGroup = document.getElementById("nodes");
+/* ==============================
+   ICONS
+   ============================== */
 
-const pathLength = path.getTotalLength();
-let startTime = null;
-
-/* Create nodes */
-chapters.forEach((c, index) => {
-  const node = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  node.setAttribute("cx", c.x);
-  node.setAttribute("cy", c.y);
-  node.setAttribute("r", 4);
-  node.classList.add("node");
-
-  if (index === 0) node.classList.add("unlocked");
-
-  nodesGroup.appendChild(node);
-
-  c.element = node;
+const shipIcon = L.divIcon({
+  className: "ship",
+  html: "⚓",
+  iconSize: [24, 24],
 });
 
-/* Animation loop */
-function animate(timestamp) {
-  if (!startTime) startTime = timestamp;
-  const elapsed = (timestamp - startTime) / 1000;
-
-  const progress = (elapsed % LOOP_DURATION) / LOOP_DURATION;
-  const point = path.getPointAtLength(progress * pathLength);
-
-  ship.setAttribute("cx", point.x);
-  ship.setAttribute("cy", point.y);
-
-  chapters.forEach(c => {
-    if (elapsed >= c.unlockTime && !c.element.classList.contains("unlocked")) {
-      c.element.classList.add("unlocked");
-
-      // Ping effect
-      const ping = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-      ping.setAttribute("cx", c.x);
-      ping.setAttribute("cy", c.y);
-      ping.setAttribute("r", 4);
-      ping.classList.add("ping");
-      svg.appendChild(ping);
-
-      setTimeout(() => ping.remove(), 2000);
-    }
+function createPing(color) {
+  return L.circleMarker([0, 0], {
+    radius: 4,
+    color,
+    fillColor: color,
+    fillOpacity: 0.8,
   });
-
-  requestAnimationFrame(animate);
 }
 
-requestAnimationFrame(animate);
+/* ==============================
+   DRAW ROUTE
+   ============================== */
+
+const routeCoords = chapters.map(c => c.coords);
+
+L.polyline(routeCoords, {
+  color: "#ffffff",
+  weight: 2,
+  opacity: 0.6,
+}).addTo(map);
+
+/* ==============================
+   MARKERS
+   ============================== */
+
+chapters.forEach(chapter => {
+  const color = chapter.unlocked ? "#d87a32" : "#2ecc71";
+  createPing(color).setLatLng(chapter.coords).addTo(map);
+});
+
+/* ==============================
+   SHIP ANIMATION
+   ============================== */
+
+const ship = L.marker(chapters[0].coords, { icon: shipIcon }).addTo(map);
+
+let leg = 0;
+let progress = 0;
+
+const stepsPerLeg = (TOTAL_ANIMATION_TIME * 60) / (chapters.length - 1);
+
+function animateShip() {
+  const start = chapters[leg].coords;
+  const end = chapters[leg + 1].coords;
+
+  progress += 1 / stepsPerLeg;
+
+  const lat = start[0] + (end[0] - start[0]) * progress;
+  const lng = start[1] + (end[1] - start[1]) * progress;
+
+  ship.setLatLng([lat, lng]);
+
+  if (progress >= 1) {
+    progress = 0;
+    leg++;
+
+    if (leg >= chapters.length - 1) {
+      leg = 0;
+      ship.setLatLng(chapters[0].coords);
+    }
+  }
+
+  requestAnimationFrame(animateShip);
+}
+
+animateShip();
