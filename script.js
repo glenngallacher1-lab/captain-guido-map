@@ -17,7 +17,7 @@ const chapters = [
   { name: "Bering Sea", coords: [58, -175], unlocked: false },
   { name: "Arctic Ocean", coords: [75, 0], unlocked: false },
   { name: "Gulf of America", coords: [25, -90], unlocked: false },
-  { name: "South Atlantic", coords: [-35, -20], unlocked: false },
+  { name: "South Atlantic", coords: [-40, -20], unlocked: false }, // pushed south
   { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: false },
 ];
 
@@ -55,28 +55,47 @@ function createPing(color) {
 }
 
 /* ==============================
-   SMOOTH CURVE ROUTE
+   CREATE SMOOTH CURVE
    ============================== */
 
-// Function to interpolate points for smooth curve
-function smoothCurve(points, segments = 100) {
+function catmullRomSpline(points, segmentsPerLeg = 50) {
   const result = [];
-  for (let i = 0; i < points.length - 1; i++) {
-    const [lat1, lng1] = points[i];
-    const [lat2, lng2] = points[i + 1];
-    for (let j = 0; j < segments; j++) {
-      const t = j / segments;
-      // Simple quadratic Bezier-like curve for "under South America"
-      const curveLat = lat1 * (1 - t) + lat2 * t - (i === 9 ? 5 * Math.sin(Math.PI * t) : 0);
-      const curveLng = lng1 * (1 - t) + lng2 * t;
-      result.push([curveLat, curveLng]);
+  const pts = points.slice();
+  pts.unshift(points[0]); // duplicate first point
+  pts.push(points[points.length - 1]); // duplicate last point
+
+  for (let i = 0; i < pts.length - 3; i++) {
+    const p0 = pts[i];
+    const p1 = pts[i + 1];
+    const p2 = pts[i + 2];
+    const p3 = pts[i + 3];
+
+    for (let t = 0; t < 1; t += 1 / segmentsPerLeg) {
+      const t2 = t * t;
+      const t3 = t2 * t;
+
+      const lat =
+        0.5 *
+        ((2 * p1[0]) +
+          (-p0[0] + p2[0]) * t +
+          (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+          (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3);
+
+      const lng =
+        0.5 *
+        ((2 * p1[1]) +
+          (-p0[1] + p2[1]) * t +
+          (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+          (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3);
+
+      result.push([lat, lng]);
     }
   }
-  result.push(points[points.length - 1]); // last point
+  result.push(points[points.length - 1]);
   return result;
 }
 
-const routeCoords = smoothCurve(chapters.map(c => c.coords));
+const routeCoords = catmullRomSpline(chapters.map(c => c.coords), 100);
 
 L.polyline(routeCoords, {
   color: "#ffffff",
@@ -97,35 +116,15 @@ chapters.forEach(chapter => {
    SHIP ANIMATION
    ============================== */
 
-const ship = L.marker(chapters[0].coords, { icon: shipIcon }).addTo(map);
+const ship = L.marker(routeCoords[0], { icon: shipIcon }).addTo(map);
 
-let leg = 0;
 let progress = 0;
-
-// Calculate frames per leg for smooth animation at 60fps
-const stepsPerLeg = (TOTAL_ANIMATION_TIME * 60) / (chapters.length - 1);
+const totalFrames = TOTAL_ANIMATION_TIME * 60; // 60fps
 
 function animateShip() {
-  const start = chapters[leg].coords;
-  const end = chapters[leg + 1].coords;
-
-  progress += 1 / stepsPerLeg;
-
-  const lat = start[0] + (end[0] - start[0]) * progress;
-  const lng = start[1] + (end[1] - start[1]) * progress;
-
-  ship.setLatLng([lat, lng]);
-
-  if (progress >= 1) {
-    progress = 0;
-    leg++;
-
-    if (leg >= chapters.length - 1) {
-      leg = 0;
-      ship.setLatLng(chapters[0].coords);
-    }
-  }
-
+  progress = (progress + 1) % totalFrames;
+  const index = Math.floor((progress / totalFrames) * routeCoords.length);
+  ship.setLatLng(routeCoords[index]);
   requestAnimationFrame(animateShip);
 }
 
