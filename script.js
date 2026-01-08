@@ -1,72 +1,74 @@
-// Initialize map centered on Port of Ostia
-const map = L.map('map').setView([41.73, 12.29], 4);
-
-// Dark ocean-style map tiles
-L.tileLayer(
-  'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-  {
-    attribution: ''
-  }
-).addTo(map);
-
-// Ship icon
-const shipIcon = L.icon({
-  iconUrl: 'https://cdn-icons-png.flaticon.com/512/77/77305.png',
-  iconSize: [40, 40],
-});
-
-// Chapter locations (route points)
-const chapters = [
-  { name: "Port of Ostia", coords: [41.73, 12.29] },
-  { name: "Cairo / Red Sea", coords: [30.8, 32.3] },
-  { name: "Arabian Sea", coords: [15, 65] },
-  { name: "Indian Ocean", coords: [-10, 80] },
-  { name: "Philippine Sea", coords: [15, 130] },
-  { name: "North Atlantic Gyre", coords: [35, -45] },
-];
-
-// Draw route line
-const routeCoords = chapters.map(c => c.coords);
-L.polyline(routeCoords, {
-  color: 'cyan',
-  weight: 3,
-  dashArray: '6 6'
-}).addTo(map);
-
-// Animation variables
-let currentLeg = 0;
-let progress = 0;
-
-// Place ship at starting point with popup
-const ship = L.marker(chapters[0].coords, {
-  icon: shipIcon
-}).addTo(map)
-  .bindPopup(`🚢 ${chapters[0].name}`)
-  .openPopup();
-
-// Animate ship movement along the route
-function animateShip() {
-  if (currentLeg >= chapters.length - 1) return;
-
-  const start = chapters[currentLeg].coords;
-  const end = chapters[currentLeg + 1].coords;
-
-  progress += 0.002; // speed control
-
-  const lat = start[0] + (end[0] - start[0]) * progress;
-  const lng = start[1] + (end[1] - start[1]) * progress;
-
-  ship.setLatLng([lat, lng]);
-
-  if (progress >= 1) {
-    progress = 0;
-    currentLeg++;
-
-    ship.bindPopup(`🚢 ${chapters[currentLeg].name}`).openPopup();
-  }
-
-  requestAnimationFrame(animateShip);
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-// Start the animation
-animateShip();
+body {
+  background: #0b0e11;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont;
+  color: white;
+}
+
+#map-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#world-map {
+  width: 90%;
+  max-width: 1200px;
+}
+
+/* Continents */
+.continent {
+  fill: #14181f;
+  opacity: 0.9;
+}
+
+/* Route */
+#route-path {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 1.5;
+  opacity: 0.7;
+  stroke-dasharray: 4 6;
+}
+
+/* Ship */
+#ship {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,0.4));
+}
+
+/* Nodes */
+.node {
+  fill: #1f8f4c; /* locked = green (Malinov) */
+  transition: fill 3.5s ease;
+}
+
+.node.unlocked {
+  fill: #d98a32; /* muted orange */
+}
+
+/* Ping effect */
+.ping {
+  fill: none;
+  stroke: rgba(217,138,50,0.4);
+  stroke-width: 1;
+  animation: ping 2s ease-out infinite;
+}
+
+@keyframes ping {
+  from {
+    r: 4;
+    opacity: 0.8;
+  }
+  to {
+    r: 18;
+    opacity: 0;
+  }
+}
