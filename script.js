@@ -1,9 +1,9 @@
 /* ==============================
-   EDIT SECTION (TOUCH THIS ONLY)
+   CONFIGURATION
    ============================== */
 
 // Total loop duration in seconds
-const TOTAL_ANIMATION_TIME = 20;
+const TOTAL_ANIMATION_TIME = 15;
 
 // Chapter route (order = story order)
 const chapters = [
@@ -17,7 +17,7 @@ const chapters = [
   { name: "Bering Sea", coords: [58, -175], unlocked: false },
   { name: "Arctic Ocean", coords: [75, 0], unlocked: false },
   { name: "Gulf of America", coords: [25, -90], unlocked: false },
-  { name: "South Atlantic", coords: [-25, -20], unlocked: false },
+  { name: "South Atlantic", coords: [-35, -20], unlocked: false },
   { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: false },
 ];
 
@@ -28,7 +28,7 @@ const chapters = [
 const map = L.map("map", {
   worldCopyJump: true,
   zoomControl: false,
-}).setView([20, 0], 2);
+}).setView([0, 0], 2);
 
 L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
@@ -55,15 +55,33 @@ function createPing(color) {
 }
 
 /* ==============================
-   DRAW ROUTE
+   SMOOTH CURVE ROUTE
    ============================== */
 
-const routeCoords = chapters.map(c => c.coords);
+// Function to interpolate points for smooth curve
+function smoothCurve(points, segments = 100) {
+  const result = [];
+  for (let i = 0; i < points.length - 1; i++) {
+    const [lat1, lng1] = points[i];
+    const [lat2, lng2] = points[i + 1];
+    for (let j = 0; j < segments; j++) {
+      const t = j / segments;
+      // Simple quadratic Bezier-like curve for "under South America"
+      const curveLat = lat1 * (1 - t) + lat2 * t - (i === 9 ? 5 * Math.sin(Math.PI * t) : 0);
+      const curveLng = lng1 * (1 - t) + lng2 * t;
+      result.push([curveLat, curveLng]);
+    }
+  }
+  result.push(points[points.length - 1]); // last point
+  return result;
+}
+
+const routeCoords = smoothCurve(chapters.map(c => c.coords));
 
 L.polyline(routeCoords, {
   color: "#ffffff",
   weight: 2,
-  opacity: 0.6,
+  opacity: 0.8,
 }).addTo(map);
 
 /* ==============================
@@ -84,6 +102,7 @@ const ship = L.marker(chapters[0].coords, { icon: shipIcon }).addTo(map);
 let leg = 0;
 let progress = 0;
 
+// Calculate frames per leg for smooth animation at 60fps
 const stepsPerLeg = (TOTAL_ANIMATION_TIME * 60) / (chapters.length - 1);
 
 function animateShip() {
