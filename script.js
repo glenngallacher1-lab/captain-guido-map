@@ -1,5 +1,6 @@
-// Initialize map
-const map = L.map('map').setView([30, 20], 3);
+// Initialize map centered on Port of Ostia
+const map = L.map('map').setView([41.73, 12.29], 4);
+
 // Dark ocean-style map tiles
 L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
@@ -36,10 +37,36 @@ L.polyline(routeCoords, {
 let currentLeg = 0;
 let progress = 0;
 
-// Place ship at starting point
+// Place ship at starting point with popup
 const ship = L.marker(chapters[0].coords, {
   icon: shipIcon
-}).addTo(map);
+}).addTo(map)
+  .bindPopup(`🚢 ${chapters[0].name}`)
+  .openPopup();
 
-// Animate ship movement
+// Animate ship movement along the route
 function animateShip() {
+  if (currentLeg >= chapters.length - 1) return;
+
+  const start = chapters[currentLeg].coords;
+  const end = chapters[currentLeg + 1].coords;
+
+  progress += 0.002; // speed control
+
+  const lat = start[0] + (end[0] - start[0]) * progress;
+  const lng = start[1] + (end[1] - start[1]) * progress;
+
+  ship.setLatLng([lat, lng]);
+
+  if (progress >= 1) {
+    progress = 0;
+    currentLeg++;
+
+    ship.bindPopup(`🚢 ${chapters[currentLeg].name}`).openPopup();
+  }
+
+  requestAnimationFrame(animateShip);
+}
+
+// Start the animation
+animateShip();
