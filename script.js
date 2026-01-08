@@ -1,6 +1,5 @@
 // Initialize map
 const map = L.map('map').setView([30, 20], 3);
-
 // Dark ocean-style map tiles
 L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
