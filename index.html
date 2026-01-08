@@ -1,62 +1,27 @@
-
+<!DOCTYPE html>
 <html lang="en">
-<head><div id="map"></div>  
+<head>
   <meta charset="UTF-8" />
   <title>Captain Guido’s Voyage</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Leaflet Map Library -->
+  <!-- Leaflet CSS -->
   <link
     rel="stylesheet"
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
   />
 
-  <style>
-    body {
-      <link rel="stylesheet" href="style.css" />      margin: 0;
-      background: #0b132b;
-      color: white;
-      font-family: Arial, sans-serif;
-    }
-
-    h1 {
-      text-align: center;
-      padding: 12px;
-      margin: 0;
-      background: #1c2541;
-    }
-
-    #map {
-      height: 90vh;
-      width: 100%;
-    }
-  </style>
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-<div id="map"></div>
+  <div id="map"></div>
 
-<script>
-  // Create the map
-  const map = L.map('map').setView([41.74, 12.28], 4);
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  // Dark ocean-style map
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-  }).addTo(map);
-
-  // Captain Guido icon
-  const guidoIcon = L.icon({
-    iconUrl: 'https://cdn-icons-png.flaticon.com/512/616/616554.png',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-  });
-
-  // Starting position: Port of Ostia
-  const guidoMarker = L.marker([41.74, 12.28], { icon: guidoIcon })
-    .addTo(map)
-    .bindPopup("Chapter 1: Port of Ostia");
-</script>
-
+  <!-- Your JS -->
+  <script src="script.js"></script>
 </body>
 </html>
-<link rel="stylesheet" href="style.css" />
