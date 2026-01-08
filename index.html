@@ -2,27 +2,44 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Captain Guido’s Voyage</title>
-
-  <!-- Leaflet CSS -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
-
-  <!-- Your CSS -->
+  <title>Captain Guido – Voyage Map</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
-  <!-- Map container -->
-  <div id="map"></div>
 
-  <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div id="map-container">
+  <!-- SVG World Map (minimal, stylized) -->
+  <svg id="world-map" viewBox="0 0 1000 500">
+    
+    <!-- Continents (abstract shapes) -->
+    <path class="continent" d="M120 120 L260 90 L300 160 L220 210 L150 180 Z" />
+    <path class="continent" d="M350 140 L480 120 L520 200 L410 240 Z" />
+    <path class="continent" d="M620 160 L760 140 L820 220 L700 260 Z" />
+    <path class="continent" d="M780 300 L900 320 L860 380 L760 360 Z" />
 
-  <!-- Your JS -->
-  <script src="script.js"></script>
+    <!-- Travel Path -->
+    <path id="route-path"
+      d="M480 210
+         L520 220
+         L600 240
+         L680 260
+         L760 280
+         L840 300
+         L920 320
+         L980 340
+         L40 350
+         L140 330
+         L260 300"
+    />
+
+    <!-- Chapter Nodes -->
+    <g id="nodes"></g>
+
+    <!-- Ship -->
+    <circle id="ship" r="6" />
+  </svg>
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>
