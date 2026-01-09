@@ -1,16 +1,27 @@
-body {
-  margin: 0;
-  background: #f5f5f5;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Captain Guido Voyage</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-#map {
-  width: 100vw;
-  height: 100vh;
-}
+  <!-- Leaflet CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
 
-.ship {
-  font-size: 24px;
-  text-align: center;
-  line-height: 24px;
-}
+  <!-- Your CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Your JS -->
+  <script src="script.js"></script>
+</body>
+</html>
