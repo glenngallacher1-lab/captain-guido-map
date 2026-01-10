@@ -7,19 +7,7 @@ const TOTAL_ANIMATION_TIME = 15;
 
 // Chapter route (order = story order)
 const chapters = [
-  { name: "Port of Ostia", coords: [41.73, 12.29], unlocked: true },
-  { name: "Cairo / Red Sea", coords: [30.8, 32.3], unlocked: false },
-  { name: "Arabian Sea", coords: [15, 65], unlocked: false },
-  { name: "Indian Ocean", coords: [-10, 80], unlocked: false },
-  { name: "Philippine Sea", coords: [15, 130], unlocked: false },
-  { name: "South Pacific", coords: [-20, -140], unlocked: false },
-  { name: "North Pacific", coords: [35, -160], unlocked: false },
-  { name: "Bering Sea", coords: [58, -175], unlocked: false },
-  { name: "Arctic Ocean", coords: [75, 0], unlocked: false },
-  { name: "Gulf of America", coords: [25, -90], unlocked: false },
-  { name: "South Atlantic", coords: [-40, -20], unlocked: false }, // pushed south
-  { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: false },
-];
+ 
 
 /* ==============================
    MAP SETUP
@@ -31,7 +19,21 @@ const map = L.map("map", {
 }).setView([0, 0], 2);
 
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",const chapters = [
+  { name: "Port of Ostia", coords: [41.73, 12.29], unlocked: true },
+  { name: "Cairo / Red Sea", coords: [30.8, 32.3], unlocked: false },
+  { name: "Arabian Sea", coords: [15, 65], unlocked: false },
+  { name: "Indian Ocean", coords: [-10, 80], unlocked: false },
+  { name: "Philippine Sea", coords: [15, 130], unlocked: false },
+  { name: "South Pacific", coords: [-20, -140], unlocked: false },
+  { name: "Cape Horn Curve", coords: [-55, -75], unlocked: false },
+  { name: "North Pacific", coords: [35, -160], unlocked: false },
+  { name: "Bering Sea", coords: [58, -175], unlocked: false },
+  { name: "Arctic Ocean", coords: [75, 0], unlocked: false },
+  { name: "Gulf of America", coords: [25, -90], unlocked: false },
+  { name: "South Atlantic", coords: [-40, -20], unlocked: false },
+  { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: false },
+];
   { attribution: "" }
 ).addTo(map);
 
