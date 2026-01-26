@@ -27,9 +27,9 @@ const map = L.map("map", {
   touchZoom: false
 }).setView([20, 0], 2);
 
-// Dark blue ocean, black countries map
+// Blue ocean, black countries map
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
+  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   { 
     attribution: "",
     maxZoom: 19
@@ -40,13 +40,10 @@ L.tileLayer(
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
-    background: #1a4d7a !important;
+    background: #1e3a5f !important;
   }
-  .leaflet-tile-pane {
-    filter: brightness(0.3) contrast(1.2);
-  }
-  .leaflet-tile {
-    filter: invert(1) hue-rotate(180deg) saturate(0);
+  .leaflet-tile-container {
+    filter: brightness(0.5) contrast(1.5) hue-rotate(200deg) saturate(2);
   }
 `;
 document.head.appendChild(mapStyle);
@@ -427,4 +424,31 @@ document.addEventListener('DOMContentLoaded', () => {
   if (enterButton) {
     enterButton.addEventListener('click', enterSite);
   }
+  
+  // Add event listener for wallet connect button
+  const walletConnectBtn = document.getElementById('walletConnectBtn');
+  if (walletConnectBtn) {
+    walletConnectBtn.addEventListener('click', openWalletModal);
+  }
+  
+  // Add event listener for modal close button
+  const closeModalBtn = document.getElementById('closeModal');
+  if (closeModalBtn) {
+    closeModalBtn.addEventListener('click', closeWalletModal);
+  }
+  
+  // Add event listener for modal overlay
+  const modalOverlay = document.querySelector('.modal-overlay');
+  if (modalOverlay) {
+    modalOverlay.addEventListener('click', closeWalletModal);
+  }
+  
+  // Add event listeners for wallet options
+  const walletOptions = document.querySelectorAll('.wallet-option');
+  walletOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      const walletType = this.getAttribute('data-wallet');
+      connectWallet(walletType);
+    });
+  });
 });
