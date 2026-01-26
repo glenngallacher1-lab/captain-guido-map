@@ -54,10 +54,13 @@ body.entry-active {
 }
 
 .entry-logo {
-  width: 250px;
-  height: 250px;
+  width: 300px;
+  height: 300px;
   margin-bottom: 2rem;
   animation: pulse 2s ease-in-out infinite;
+  border-radius: 50%;
+  border: 5px solid var(--gold);
+  box-shadow: 0 0 50px rgba(244, 168, 54, 0.5);
 }
 
 .entry-title {
