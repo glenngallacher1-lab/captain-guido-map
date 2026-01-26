@@ -43,6 +43,10 @@ html {
   transition: opacity 0.8s ease, visibility 0.8s ease;
 }
 
+body.entry-active {
+  overflow: hidden;
+}
+
 #entry-screen.hidden {
   opacity: 0;
   visibility: hidden;
