@@ -7,10 +7,10 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="entry-active">
+<body>
   
   <!-- Entry Screen -->
-  <div id="entry-screen" class="active">
+  <div id="entry-screen">
     <img src="captain-guido.png" alt="Captain Guido" class="entry-logo">
     <h1 class="entry-title">CAPTAIN GUIDO</h1>
     <button class="enter-btn" id="enterButton" type="button">ENTER THE VOYAGE</button>
@@ -41,7 +41,7 @@
         <span class="nav-number">003</span>
         <span class="nav-text">IMPACT</span>
       </a>
-      <button class="wallet-connect-btn" onclick="openWalletModal()">
+      <button class="wallet-connect-btn" id="walletConnectBtn">
         <span class="nav-number">004</span>
         <span class="nav-text">CONNECT WALLET</span>
       </button>
@@ -455,20 +455,20 @@
 
   <!-- Wallet Modal -->
   <div id="wallet-modal" class="modal">
-    <div class="modal-overlay" onclick="closeWalletModal()"></div>
+    <div class="modal-overlay"></div>
     <div class="modal-content">
-      <button class="modal-close" onclick="closeWalletModal()">×</button>
+      <button class="modal-close" id="closeModal">×</button>
       <h2>CONNECT WALLET</h2>
       <div class="wallet-options">
-        <button class="wallet-option" onclick="connectWallet('metamask')">
+        <button class="wallet-option" data-wallet="metamask">
           <span class="wallet-icon">🦊</span>
           <span class="wallet-name">MetaMask</span>
         </button>
-        <button class="wallet-option" onclick="connectWallet('walletconnect')">
+        <button class="wallet-option" data-wallet="walletconnect">
           <span class="wallet-icon">🔗</span>
           <span class="wallet-name">WalletConnect</span>
         </button>
-        <button class="wallet-option" onclick="connectWallet('coinbase')">
+        <button class="wallet-option" data-wallet="coinbase">
           <span class="wallet-icon">💼</span>
           <span class="wallet-name">Coinbase Wallet</span>
         </button>
