@@ -17,17 +17,33 @@ function enterSite() {
 const map = L.map("map", {
   worldCopyJump: true,
   zoomControl: false,
-  attributionControl: false
+  attributionControl: false,
+  dragging: true,
+  scrollWheelZoom: false,
+  doubleClickZoom: false,
+  touchZoom: false
 }).setView([20, 0], 2);
 
-// Dark themed map tiles
+// Dark blue ocean, black countries map
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  "https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png",
   { 
     attribution: "",
     maxZoom: 19
   }
 ).addTo(map);
+
+// Add custom styling for ocean color
+const style = document.createElement('style');
+style.textContent = `
+  .leaflet-container {
+    background: #0d2a47 !important;
+  }
+  .leaflet-tile-pane {
+    filter: brightness(0.4) hue-rotate(200deg) saturate(1.5);
+  }
+`;
+document.head.appendChild(style);
 
 // Ship Icon
 const shipIcon = L.divIcon({
