@@ -1,9 +1,11 @@
 // ============================================
 // ENTRY SCREEN
 // ============================================
-function enterSite() {
+window.enterSite = function() {
   const entryScreen = document.getElementById('entry-screen');
+  document.body.classList.remove('entry-active');
   entryScreen.classList.add('hidden');
+  document.body.style.overflow = 'auto';
   
   // Start animations after entry
   setTimeout(() => {
@@ -409,7 +411,10 @@ function createMobileMenu() {
   // This would be useful for responsive navigation on smaller screens
 }
 
-// Initialize
+// Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Captain Guido website initialized.');
+  
+  // Ensure body starts with entry screen active
+  document.body.classList.add('entry-active');
 });
