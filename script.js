@@ -37,8 +37,8 @@ L.tileLayer(
 ).addTo(map);
 
 // Add custom styling for ocean color
-const style = document.createElement('style');
-style.textContent = `
+const mapStyle = document.createElement('style');
+mapStyle.textContent = `
   .leaflet-container {
     background: #0d2a47 !important;
   }
@@ -46,7 +46,7 @@ style.textContent = `
     filter: brightness(0.4) hue-rotate(200deg) saturate(1.5);
   }
 `;
-document.head.appendChild(style);
+document.head.appendChild(mapStyle);
 
 // Ship Icon
 const shipIcon = L.divIcon({
@@ -311,8 +311,8 @@ function showNotification(message, type = 'success') {
 }
 
 // Add notification animations
-const style = document.createElement('style');
-style.textContent = `
+const notificationStyle = document.createElement('style');
+notificationStyle.textContent = `
   @keyframes slideIn {
     from {
       transform: translateX(400px);
@@ -335,7 +335,7 @@ style.textContent = `
     }
   }
 `;
-document.head.appendChild(style);
+document.head.appendChild(notificationStyle);
 
 // ============================================
 // INTERSECTION OBSERVER (Scroll Animations)
