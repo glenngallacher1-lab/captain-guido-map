@@ -36,14 +36,17 @@ L.tileLayer(
   }
 ).addTo(map);
 
-// Add custom styling for ocean color
+// Add custom styling for blue ocean and black countries
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
-    background: #0d2a47 !important;
+    background: #1a4d7a !important;
   }
   .leaflet-tile-pane {
-    filter: brightness(0.4) hue-rotate(200deg) saturate(1.5);
+    filter: brightness(0.3) contrast(1.2);
+  }
+  .leaflet-tile {
+    filter: invert(1) hue-rotate(180deg) saturate(0);
   }
 `;
 document.head.appendChild(mapStyle);
