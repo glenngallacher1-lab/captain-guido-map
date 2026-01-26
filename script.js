@@ -1,7 +1,8 @@
 // ============================================
 // ENTRY SCREEN
 // ============================================
-window.enterSite = function() {
+function enterSite() {
+  console.log('Enter button clicked!'); // Debug log
   const entryScreen = document.getElementById('entry-screen');
   document.body.classList.remove('entry-active');
   entryScreen.classList.add('hidden');
@@ -417,4 +418,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Ensure body starts with entry screen active
   document.body.classList.add('entry-active');
+  
+  // Add event listener for enter button
+  const enterButton = document.getElementById('enterButton');
+  if (enterButton) {
+    enterButton.addEventListener('click', enterSite);
+  }
 });
