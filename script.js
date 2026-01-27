@@ -27,7 +27,7 @@ const map = L.map("map", {
   touchZoom: false
 }).setView([20, 0], 2);
 
-// Blue ocean, black countries map
+// Dark blue ocean, black countries map
 L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   { 
@@ -36,14 +36,14 @@ L.tileLayer(
   }
 ).addTo(map);
 
-// Add custom styling for blue ocean and black countries
+// Add custom styling for dark blue ocean and black countries
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
-    background: #1e3a5f !important;
+    background: #0d1b2a !important;
   }
-  .leaflet-tile-container {
-    filter: brightness(0.5) contrast(1.5) hue-rotate(200deg) saturate(2);
+  .leaflet-tile-pane {
+    filter: brightness(0.3) contrast(1.8) saturate(0.3);
   }
 `;
 document.head.appendChild(mapStyle);
@@ -449,10 +449,6 @@ document.addEventListener('DOMContentLoaded', () => {
     option.addEventListener('click', function() {
       const walletType = this.getAttribute('data-wallet');
       connectWallet(walletType);
-      // Force map color update
-setTimeout(() => {
-  map.invalidateSize();
-}, 1000);
     });
   });
 });
