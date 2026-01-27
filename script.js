@@ -29,21 +29,21 @@ const map = L.map("map", {
 
 // Dark blue ocean, black countries map
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
   { 
     attribution: "",
     maxZoom: 19
   }
 ).addTo(map);
 
-// Add custom styling for dark blue ocean and black countries
+// Add custom styling for dark blue ocean
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
     background: #0d1b2a !important;
   }
-  .leaflet-tile-pane {
-    filter: brightness(0.3) contrast(1.8) saturate(0.3);
+  .leaflet-tile {
+    filter: brightness(0.6) hue-rotate(200deg) saturate(1.2);
   }
 `;
 document.head.appendChild(mapStyle);
