@@ -27,23 +27,23 @@ const map = L.map("map", {
   touchZoom: false
 }).setView([20, 0], 2);
 
-// Dark blue ocean, black countries map
+// Map tiles - using OpenStreetMap
 L.tileLayer(
-  "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
   { 
     attribution: "",
     maxZoom: 19
   }
 ).addTo(map);
 
-// Add custom styling for dark blue ocean
+// Add custom styling for dark blue ocean and black countries
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
     background: #0d1b2a !important;
   }
   .leaflet-tile {
-    filter: brightness(0.6) hue-rotate(200deg) saturate(1.2);
+    filter: invert(1) brightness(0.4) contrast(1.5) hue-rotate(180deg) saturate(0.5);
   }
 `;
 document.head.appendChild(mapStyle);
