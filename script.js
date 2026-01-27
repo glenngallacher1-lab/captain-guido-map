@@ -27,23 +27,21 @@ const map = L.map("map", {
   touchZoom: false
 }).setView([20, 0], 2);
 
-// Map tiles - using OpenStreetMap
+// Map tiles - CartoDB Dark Matter (reliable)
 L.tileLayer(
-  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   { 
     attribution: "",
-    maxZoom: 19
+    maxZoom: 19,
+    subdomains: 'abcd'
   }
 ).addTo(map);
 
-// Add custom styling for dark blue ocean and black countries
+// Very simple styling - just darken slightly
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
     background: #0d1b2a !important;
-  }
-  .leaflet-tile {
-    filter: invert(1) brightness(0.4) contrast(1.5) hue-rotate(180deg) saturate(0.5);
   }
 `;
 document.head.appendChild(mapStyle);
