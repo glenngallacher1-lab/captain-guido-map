@@ -215,7 +215,7 @@ body.entry-active {
   transform: translate(-50%, -50%);
   width: 60%;
   height: 60%;
-  background-image: url("captain-guido.png");
+  background-image: url("captain-guido.png?v=5");
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
@@ -225,9 +225,11 @@ body.entry-active {
 }
 
 #map {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  filter: brightness(0.6) saturate(0.8);
   z-index: 2;
 }
 
