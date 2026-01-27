@@ -449,6 +449,10 @@ document.addEventListener('DOMContentLoaded', () => {
     option.addEventListener('click', function() {
       const walletType = this.getAttribute('data-wallet');
       connectWallet(walletType);
+      // Force map color update
+setTimeout(() => {
+  map.invalidateSize();
+}, 1000);
     });
   });
 });
