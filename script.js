@@ -27,7 +27,7 @@ const map = L.map("map", {
   touchZoom: false
 }).setView([20, 0], 2);
 
-// Map tiles - CartoDB Dark Matter (reliable)
+// Map tiles - CartoDB Dark Matter
 L.tileLayer(
   "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
   { 
@@ -37,11 +37,14 @@ L.tileLayer(
   }
 ).addTo(map);
 
-// Very simple styling - just darken slightly
+// Styling for blue ocean and green land
 const mapStyle = document.createElement('style');
 mapStyle.textContent = `
   .leaflet-container {
-    background: #0d1b2a !important;
+    background: #1e3a5f !important;
+  }
+  .leaflet-tile {
+    filter: hue-rotate(180deg) saturate(1.5) brightness(0.7) contrast(1.2);
   }
 `;
 document.head.appendChild(mapStyle);
