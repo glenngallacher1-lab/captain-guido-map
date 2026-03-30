@@ -1,455 +1,619 @@
-// ============================================
-// ENTRY SCREEN
-// ============================================
-function enterSite() {
-  console.log('Enter button clicked!'); // Debug log
-  const entryScreen = document.getElementById('entry-screen');
-  document.body.classList.remove('entry-active');
-  entryScreen.classList.add('hidden');
-  document.body.style.overflow = 'auto';
+(function() {
+  'use strict';
+
+  // Security: Prevent console manipulation
+  const originalLog = console.log;
+  const originalError = console.error;
+
+  // ─── IMPACT DATA CONFIG ────────────────────────────────────────────────────
+  // Set `launched: true` and update the stats below to switch the Impact
+  // section from "pre-launch" to live tracking mode after you go live.
+  const IMPACT_DATA = {
+    launched: false,
+    chaptersUnlocked: 0,
+    lbsRemoved: 0,
+    milesCleaned: 0,
+    donationsVerified: 0,
+    donationUSD: 0,
+    milestones: [
+      // Example — add completed milestones here:
+      // { date: '2025-Q3', title: 'Chapter 1 Unlocked', location: 'Mediterranean Sea, Italy', impact: '500 lbs removed' }
+    ]
+  };
+  // ──────────────────────────────────────────────────────────────────────────
   
-  // Start animations after entry
-  setTimeout(() => {
-    entryScreen.style.display = 'none';
-  }, 800);
-}
-
-// ============================================
-// MAP SETUP
-// ============================================
-const map = L.map("map", {
-  worldCopyJump: true,
-  zoomControl: false,
-  attributionControl: false,
-  dragging: true,
-  scrollWheelZoom: false,
-  doubleClickZoom: false,
-  touchZoom: false
-}).setView([20, 0], 2);
-
-// Map tiles - CartoDB Dark Matter
-L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-  { 
-    attribution: "",
-    maxZoom: 19,
-    subdomains: 'abcd'
-  }
-).addTo(map);
-
-// Styling for blue ocean and green land
-const mapStyle = document.createElement('style');
-mapStyle.textContent = `
-  .leaflet-container {
-    background: #1e3a5f !important;
-  }
-  .leaflet-tile {
-    filter: hue-rotate(180deg) saturate(1.5) brightness(0.7) contrast(1.2);
-  }
-`;
-document.head.appendChild(mapStyle);
-
-// Ship Icon
-const shipIcon = L.divIcon({
-  className: "ship",
-  html: "🚢",
-  iconSize: [32, 32]
-});
-
-// Chapter coordinates based on the story
-const chapters = [
-  { name: "Port of Ostia", coords: [41.73, 12.29], unlocked: true },
-  { name: "Signals in Cairo", coords: [30.0444, 31.2357], unlocked: true },
-  { name: "Arabian Tides", coords: [20, 60], unlocked: true },
-  { name: "Indian Abyss", coords: [-10, 80], unlocked: true },
-  { name: "Philippine Sea", coords: [15, 130], unlocked: true },
-  { name: "South Pacific", coords: [-21.694129, -147.915508], unlocked: true },
-  { name: "North Pacific", coords: [40, -150], unlocked: true },
-  { name: "Bering Sea", coords: [58, -175], unlocked: true },
-  { name: "North Atlantic", coords: [45, -30], unlocked: true },
-  { name: "Gulf of America", coords: [25, -90], unlocked: true },
-  { name: "South Atlantic", coords: [-20, -30], unlocked: true },
-  { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: true }
-];
-
-// Create route from chapter coordinates
-const route = chapters.map(chapter => chapter.coords);
-
-// Draw the glowing route line
-const routeLine = L.polyline(route, {
-  color: "#f4a836",
-  weight: 3,
-  opacity: 0.7,
-  dashArray: "10, 10",
-  className: "route-line"
-}).addTo(map);
-
-// Add chapter markers
-chapters.forEach((chapter, index) => {
-  const marker = L.circleMarker(chapter.coords, {
-    radius: 10,
-    fillColor: chapter.unlocked ? "#f4a836" : "#666",
-    color: "#fff",
-    weight: 2,
-    opacity: 1,
-    fillOpacity: 0.9
-  }).addTo(map);
-
-  // Custom popup styling
-  marker.bindPopup(`
-    <div style="
-      text-align: center; 
-      padding: 1rem;
-      background: #0a1628;
-      border: 1px solid #f4a836;
-      color: #e8d4b8;
-      min-width: 200px;
-    ">
-      <strong style="
-        color: #f4a836;
-        font-size: 0.9rem;
-        letter-spacing: 2px;
-        display: block;
-        margin-bottom: 0.5rem;
-      ">CHAPTER ${index + 1}</strong>
-      <span style="
-        color: #e8d4b8;
-        font-size: 1.1rem;
-        font-weight: bold;
-        display: block;
-        margin-bottom: 0.5rem;
-      ">${chapter.name}</span>
-      <span style="
-        font-size: 0.8rem;
-        color: ${chapter.unlocked ? '#4caf50' : '#999'};
-        font-weight: 600;
-        letter-spacing: 1px;
-      ">
-        ${chapter.unlocked ? '✓ UNLOCKED' : '🔒 LOCKED'}
-      </span>
-    </div>
-  `, {
-    closeButton: false,
-    className: 'custom-popup'
-  });
-});
-
-// Animate ship along the route
-const ship = L.marker(route[0], { icon: shipIcon }).addTo(map);
-
-let currentSegment = 0;
-let progress = 0;
-const speed = 0.0004; // Adjust speed here
-
-function animateShip() {
-  const start = route[currentSegment];
-  const end = route[currentSegment + 1];
-
-  if (!end) {
-    currentSegment = 0;
-    progress = 0;
-    requestAnimationFrame(animateShip);
-    return;
-  }
-
-  const lat = start[0] + (end[0] - start[0]) * progress;
-  const lng = start[1] + (end[1] - start[1]) * progress;
-
-  ship.setLatLng([lat, lng]);
-
-  progress += speed;
-
-  if (progress >= 1) {
-    progress = 0;
-    currentSegment++;
-  }
-
-  requestAnimationFrame(animateShip);
-}
-
-animateShip();
-
-// ============================================
-// NAVIGATION SCROLL EFFECT
-// ============================================
-const nav = document.getElementById('main-nav');
-let lastScroll = 0;
-
-window.addEventListener('scroll', () => {
-  const currentScroll = window.pageYOffset;
-
-  if (currentScroll > 100) {
-    nav.classList.add('scrolled');
-  } else {
-    nav.classList.remove('scrolled');
-  }
-
-  lastScroll = currentScroll;
-});
-
-// ============================================
-// SMOOTH SCROLLING
-// ============================================
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-  anchor.addEventListener('click', function (e) {
-    e.preventDefault();
-    const target = document.querySelector(this.getAttribute('href'));
-    if (target) {
-      target.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
-    }
-  });
-});
-
-// ============================================
-// WALLET MODAL
-// ============================================
-function openWalletModal() {
-  const modal = document.getElementById('wallet-modal');
-  modal.classList.add('active');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeWalletModal() {
-  const modal = document.getElementById('wallet-modal');
-  modal.classList.remove('active');
-  document.body.style.overflow = 'auto';
-}
-
-// Close modal on escape key
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    closeWalletModal();
-  }
-});
-
-// ============================================
-// WALLET CONNECTION
-// ============================================
-async function connectWallet(walletType) {
-  console.log(`Connecting to ${walletType}...`);
-
-  // Check if MetaMask/Web3 provider is available
-  if (typeof window.ethereum !== 'undefined') {
-    try {
-      // Request account access
-      const accounts = await window.ethereum.request({ 
-        method: 'eth_requestAccounts' 
-      });
-      
-      const account = accounts[0];
-      
-      // Update button text with shortened address
-      const walletBtn = document.querySelector('.wallet-connect-btn .nav-text');
-      walletBtn.textContent = `${account.substring(0, 6)}...${account.substring(account.length - 4)}`;
-      
-      // Close modal
-      closeWalletModal();
-      
-      console.log('Connected wallet:', account);
-      
-      // Optional: Show success notification
-      showNotification('Wallet Connected Successfully!');
-      
-      // You can add more logic here:
-      // - Fetch CGC token balance
-      // - Check if user holds specific NFTs
-      // - Enable holder-only features
-      
-    } catch (error) {
-      console.error('Error connecting wallet:', error);
-      showNotification('Failed to connect wallet. Please try again.', 'error');
-    }
-  } else {
-    // No Web3 provider detected
-    showNotification(`Please install ${walletType === 'metamask' ? 'MetaMask' : 'a Web3 wallet'} to connect!`, 'error');
+  // Entry Screen
+  function enterSite() {
+    const entryScreen = document.getElementById('entry-screen');
+    if (!entryScreen) return;
     
-    // Redirect to wallet installation
-    if (walletType === 'metamask') {
-      setTimeout(() => {
-        window.open('https://metamask.io/download/', '_blank');
-      }, 1000);
+    document.body.classList.remove('entry-active');
+    entryScreen.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    
+    setTimeout(function() {
+      entryScreen.style.display = 'none';
+    }, 350);
+  }
+
+  // Create ocean particles
+  function createOceanParticles() {
+    const container = document.getElementById('oceanParticles');
+    if (!container) return;
+
+    for (let i = 0; i < 50; i++) {
+      const particle = document.createElement('div');
+      particle.style.position = 'absolute';
+      particle.style.width = Math.random() * 4 + 2 + 'px';
+      particle.style.height = particle.style.width;
+      particle.style.background = 'rgba(78, 196, 196, ' + (Math.random() * 0.5 + 0.2) + ')';
+      particle.style.borderRadius = '50%';
+      particle.style.left = Math.random() * 100 + '%';
+      particle.style.top = Math.random() * 100 + '%';
+      particle.style.animation = 'float ' + (Math.random() * 10 + 5) + 's ease-in-out infinite';
+      container.appendChild(particle);
     }
   }
-}
 
-// ============================================
-// NOTIFICATION SYSTEM
-// ============================================
-function showNotification(message, type = 'success') {
-  // Remove any existing notifications
-  const existingNotif = document.querySelector('.notification');
-  if (existingNotif) {
-    existingNotif.remove();
-  }
-
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = `notification ${type}`;
-  notification.textContent = message;
-  notification.style.cssText = `
-    position: fixed;
-    top: 5rem;
-    right: 2rem;
-    background: ${type === 'success' ? '#4caf50' : '#f44336'};
-    color: white;
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    font-weight: 600;
-    z-index: 10000;
-    animation: slideIn 0.3s ease;
-  `;
-
-  document.body.appendChild(notification);
-
-  // Remove after 3 seconds
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-// Add notification animations
-const notificationStyle = document.createElement('style');
-notificationStyle.textContent = `
-  @keyframes slideIn {
-    from {
-      transform: translateX(400px);
-      opacity: 0;
+  // Shuffle Text Animation
+  function shuffleText(element) {
+    if (!element) {
+      originalError('Shuffle element not found');
+      return;
     }
-    to {
-      transform: translateX(0);
-      opacity: 1;
+    
+    const originalText = element.textContent;
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
+    const length = originalText.length;
+    let iteration = 0;
+    
+    const interval = setInterval(function() {
+      element.textContent = originalText
+        .split('')
+        .map(function(char, index) {
+          if (index < iteration) {
+            return originalText[index];
+          }
+          if (char === ' ') return ' ';
+          return chars[Math.floor(Math.random() * chars.length)];
+        })
+        .join('');
+      
+      if (iteration >= length) {
+        clearInterval(interval);
+        element.textContent = originalText;
+      }
+      
+      iteration += 1 / 4.3;
+    }, 30);
+  }
+
+  // Map Setup
+  function initializeMap() {
+    if (typeof L === 'undefined') {
+      originalError('Leaflet not loaded');
+      return;
     }
-  }
-  
-  @keyframes slideOut {
-    from {
-      transform: translateX(0);
-      opacity: 1;
-    }
-    to {
-      transform: translateX(400px);
-      opacity: 0;
-    }
-  }
-`;
-document.head.appendChild(notificationStyle);
 
-// ============================================
-// INTERSECTION OBSERVER (Scroll Animations)
-// ============================================
-const observerOptions = {
-  threshold: 0.15,
-  rootMargin: '0px 0px -100px 0px'
-};
+    const map = L.map("map", {
+      worldCopyJump: false,
+      zoomControl: false,
+      attributionControl: false,
+      dragging: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      touchZoom: false,
+      boxZoom: false,
+      keyboard: false,
+      tap: false,
+      zoomSnap: 0,
+      zoomDelta: 0,
+      trackResize: true
+    }).setView([20, 0], 2.5);
 
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.style.opacity = '1';
-      entry.target.style.transform = 'translateY(0)';
-    }
-  });
-}, observerOptions);
+    // ESRI Ocean Base — beautiful blue/teal ocean map
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}",
+      { attribution: "", maxZoom: 10 }
+    ).addTo(map);
 
-// Observe all cards for scroll animations
-document.addEventListener('DOMContentLoaded', () => {
-  const animatedElements = document.querySelectorAll(
-    '.chapter-card, .impact-item, .section-content'
-  );
-  
-  animatedElements.forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(50px)';
-    el.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
-    observer.observe(el);
-  });
-});
+    // Ocean reference labels overlay
+    L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}",
+      { attribution: "", maxZoom: 10, opacity: 0.8 }
+    ).addTo(map);
 
-// ============================================
-// TOKEN PRICE FETCHER (Placeholder)
-// ============================================
-async function fetchCGCPrice() {
-  // Replace this with your actual token contract/API
-  // Example: CoinGecko API, DEX API, or blockchain query
-  
-  try {
-    // Placeholder data
-    return {
-      price: 0.000123,
-      change24h: +5.67,
-      marketCap: 1234567,
-      volume24h: 234567
-    };
-  } catch (error) {
-    console.error('Error fetching price:', error);
-    return null;
-  }
-}
+    // Tile card-flip animation — uses Leaflet's tileload event so every tile
+    // is fully loaded and positioned before we animate it. Each tile flips in
+    // from edge-on (rotateY 90deg) after a random delay for a scattered reveal.
+    map.on('tileload', function(e) {
+      var tile = e.tile;
+      if (tile.dataset.cgcFlip) return;
+      tile.dataset.cgcFlip = '1';
 
-// Optional: Update price on page
-fetchCGCPrice().then(data => {
-  if (data) {
-    console.log('CGC Price Data:', data);
-    // You can display this data in your UI if you add price elements
-  }
-});
+      tile.style.opacity = '0';
+      tile.style.transform = 'rotateY(90deg)';
+      tile.style.transformOrigin = 'center center';
+      tile.style.transition = 'none';
 
-// ============================================
-// CONSOLE MESSAGE
-// ============================================
-console.log('%c⚓ CAPTAIN GUIDO COIN ⚓', 'color: #f4a836; font-size: 24px; font-weight: bold;');
-console.log('%cSaving our oceans, one token at a time.', 'color: #e8d4b8; font-size: 14px;');
-console.log('%cWebsite loaded successfully! 🌊', 'color: #4caf50; font-size: 12px;');
-
-// ============================================
-// MOBILE MENU (Optional - Add if needed)
-// ============================================
-function createMobileMenu() {
-  // Add mobile menu functionality here if needed
-  // This would be useful for responsive navigation on smaller screens
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('Captain Guido website initialized.');
-  
-  // Ensure body starts with entry screen active
-  document.body.classList.add('entry-active');
-  
-  // Add event listener for enter button
-  const enterButton = document.getElementById('enterButton');
-  if (enterButton) {
-    enterButton.addEventListener('click', enterSite);
-  }
-  
-  // Add event listener for wallet connect button
-  const walletConnectBtn = document.getElementById('walletConnectBtn');
-  if (walletConnectBtn) {
-    walletConnectBtn.addEventListener('click', openWalletModal);
-  }
-  
-  // Add event listener for modal close button
-  const closeModalBtn = document.getElementById('closeModal');
-  if (closeModalBtn) {
-    closeModalBtn.addEventListener('click', closeWalletModal);
-  }
-  
-  // Add event listener for modal overlay
-  const modalOverlay = document.querySelector('.modal-overlay');
-  if (modalOverlay) {
-    modalOverlay.addEventListener('click', closeWalletModal);
-  }
-  
-  // Add event listeners for wallet options
-  const walletOptions = document.querySelectorAll('.wallet-option');
-  walletOptions.forEach(option => {
-    option.addEventListener('click', function() {
-      const walletType = this.getAttribute('data-wallet');
-      connectWallet(walletType);
+      setTimeout(function() {
+        tile.style.transition =
+          'opacity 0.4s cubic-bezier(0.2,0.8,0.3,1),' +
+          'transform 0.45s cubic-bezier(0.2,0.8,0.3,1)';
+        tile.style.opacity = '1';
+        tile.style.transform = 'rotateY(0deg)';
+      }, Math.random() * 900 + 80);
     });
+
+    const shipIcon = L.divIcon({
+      className: "ship",
+      html: "🚢",
+      iconSize: [32, 32]
+    });
+
+    const chapters = [
+      { name: "Port of Ostia", coords: [41.73, 12.29], unlocked: true },
+      { name: "Signals in Cairo", coords: [30.0444, 31.2357], unlocked: false },
+      { name: "Arabian Tides", coords: [20, 60], unlocked: false },
+      { name: "Indian Abyss", coords: [-10, 80], unlocked: false },
+      { name: "Philippine Sea", coords: [15, 130], unlocked: false },
+      { name: "South Pacific", coords: [-21.694129, -147.915508], unlocked: false },
+      { name: "North Pacific", coords: [40, -150], unlocked: false },
+      { name: "Bering Sea", coords: [58, -175], unlocked: false },
+      { name: "North Atlantic", coords: [45, -30], unlocked: false },
+      { name: "Gulf of America", coords: [25, -90], unlocked: false },
+      { name: "South Atlantic", coords: [-20, -30], unlocked: false },
+      { name: "Return to Ostia", coords: [41.73, 12.29], unlocked: false }
+    ];
+
+    const oceanRoutes = [
+      [[41.73, 12.29], [40.5, 14], [37, 18], [35, 23], [33, 28], [30.0444, 31.2357]],
+      [[30.0444, 31.2357], [29, 33], [25, 36], [20, 40], [18, 50], [20, 60]],
+      [[20, 60], [15, 65], [10, 70], [0, 75], [-10, 80]],
+      [[-10, 80], [-8, 90], [-5, 100], [0, 110], [5, 120], [10, 125], [15, 130]],
+      [[15, 130], [10, 140], [5, 150], [0, 160], [-5, 165], [-10, 170], [-15, 175], [-18, -175], [-21.694129, -147.915508]],
+      [[-21.694129, -147.915508], [-15, -155], [-10, -160], [0, -165], [10, -165], [20, -162], [30, -158], [40, -150]],
+      [[40, -150], [45, -155], [50, -165], [55, -172], [58, -175]],
+      [[58, -175], [62, -170], [65, -160], [68, -145], [70, -120], [68, -95], [65, -75], [60, -60], [55, -50], [50, -40], [45, -30]],
+      [[45, -30], [40, -35], [35, -45], [30, -60], [27, -75], [25, -82], [25, -90]],
+      [[25, -90], [22, -85], [18, -75], [12, -65], [5, -50], [0, -45], [-10, -38], [-20, -30]],
+      [[-20, -30], [-15, -20], [-10, -10], [0, 0], [10, 5], [20, 8], [30, 10], [36, 10], [39, 11], [41.73, 12.29]]
+    ];
+
+    const route = oceanRoutes.flat();
+
+    // Add chapter markers
+    chapters.forEach(function(chapter, index) {
+      const marker = L.circleMarker(chapter.coords, {
+        radius: chapter.unlocked ? 12 : 8,
+        fillColor: chapter.unlocked ? "#f4a836" : "#666",
+        color: chapter.unlocked ? "#fff" : "#444",
+        weight: 2,
+        opacity: 1,
+        fillOpacity: chapter.unlocked ? 0.9 : 0.5
+      }).addTo(map);
+
+      const tempDiv = document.createElement('div');
+      tempDiv.textContent = chapter.name;
+      const safeName = tempDiv.innerHTML;
+
+      marker.bindPopup(
+        '<div style="text-align:center;padding:1rem;background:linear-gradient(135deg,#0a2540 0%,#1e5f8c 100%);border:2px solid #f4a836;color:#e8d4b8;min-width:220px;border-radius:8px;">' +
+        '<strong style="color:#f4a836;font-size:0.85rem;letter-spacing:2px;display:block;margin-bottom:0.5rem;">CHAPTER ' + String(index + 1).padStart(2, '0') + '</strong>' +
+        '<span style="color:#e8d4b8;font-size:1.2rem;font-weight:bold;display:block;margin-bottom:0.8rem;">' + safeName + '</span>' +
+        '<span style="font-size:0.8rem;color:' + (chapter.unlocked ? '#4ec4c4' : '#999') + ';font-weight:700;letter-spacing:1px;padding:0.4rem 0.8rem;border-radius:12px;background:' + (chapter.unlocked ? 'rgba(78,196,196,0.2)' : 'rgba(100,100,100,0.2)') + ';border:1px solid ' + (chapter.unlocked ? '#4ec4c4' : '#666') + ';display:inline-block;">' +
+        (chapter.unlocked ? '✓ UNLOCKED' : '🔒 LOCKED') +
+        '</span></div>',
+        { closeButton: false, className: 'custom-popup' }
+      );
+    });
+
+    // Animate ship
+    const ship = L.marker(route[0], { icon: shipIcon }).addTo(map);
+
+    let currentSegment = 0;
+    let progress = 0;
+    const speed = 0.0003;
+
+    function animateShip() {
+      const start = route[currentSegment];
+      const end = route[currentSegment + 1];
+
+      if (!end) {
+        currentSegment = 0;
+        progress = 0;
+        requestAnimationFrame(animateShip);
+        return;
+      }
+
+      const lat = start[0] + (end[0] - start[0]) * progress;
+      const lng = start[1] + (end[1] - start[1]) * progress;
+
+      ship.setLatLng([lat, lng]);
+
+      progress += speed;
+
+      if (progress >= 1) {
+        progress = 0;
+        currentSegment++;
+      }
+
+      requestAnimationFrame(animateShip);
+    }
+
+    animateShip();
+  }
+
+  // Navigation scroll effect
+  function initNavigation() {
+    const nav = document.getElementById('main-nav');
+    if (!nav) return;
+
+    window.addEventListener('scroll', function() {
+      const currentScroll = window.pageYOffset;
+
+      if (currentScroll > 100) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+  }
+
+  // Smooth scrolling
+  function initSmoothScroll() {
+    document.querySelectorAll('a[href^="#"]').forEach(function(anchor) {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  // Modal functions
+  function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll('.modal, .info-modal').forEach(function(modal) {
+      modal.classList.remove('active');
+    });
+    document.body.style.overflow = 'auto';
+  }
+
+  // Wallet connection with security
+  function connectWallet(walletType) {
+    // Validate wallet type
+    const validWallets = ['metamask', 'walletconnect', 'coinbase'];
+    if (!validWallets.includes(walletType)) {
+      originalError('Invalid wallet type');
+      return;
+    }
+
+    // Check HTTPS
+    if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+      alert('For security, wallet connections require HTTPS');
+      return;
+    }
+
+    if (typeof window.ethereum !== 'undefined') {
+      window.ethereum.request({ method: 'eth_requestAccounts' })
+        .then(function(accounts) {
+          if (!accounts || accounts.length === 0) {
+            throw new Error('No accounts found');
+          }
+          
+          const account = accounts[0];
+          
+          // Validate Ethereum address format
+          if (!/^0x[a-fA-F0-9]{40}$/.test(account)) {
+            throw new Error('Invalid account format');
+          }
+          
+          const walletBtn = document.querySelector('.wallet-connect-btn .nav-text');
+          if (walletBtn) {
+            walletBtn.textContent = account.substring(0, 6) + '...' + account.substring(account.length - 4);
+          }
+          
+          closeAllModals();
+          originalLog('Wallet connected:', account);
+        })
+        .catch(function(error) {
+          originalError('Connection error:', error);
+          alert('Failed to connect wallet. Please try again.');
+        });
+    } else {
+      alert('Please install ' + (walletType === 'metamask' ? 'MetaMask' : 'a Web3 wallet'));
+    }
+  }
+
+  // ── MAP BOOT SEQUENCE ─────────────────────────────────────────────────────
+  function runMapBootSequence() {
+    var overlay  = document.getElementById('mapBootOverlay');
+    var bootText = document.getElementById('mapBootText');
+    var scanLine = document.getElementById('mapScanLine');
+    var hudCorners = document.querySelector('.map-hud-corners');
+    if (!overlay || !bootText || !scanLine) return;
+
+    var lines = [
+      'NAUTILUS LEDGER v1.0',
+      'INITIALIZING OCEAN GRID...',
+      'SYNCING CHAPTER NODES...',
+      'TRACKING HASHWIND COORDINATES...',
+      'SYSTEM ONLINE'
+    ];
+
+    var lineIndex = 0;
+    var charIndex = 0;
+    var currentLine = '';
+
+    function typeLine() {
+      if (lineIndex >= lines.length) {
+        // All lines typed — trigger scan line + HUD
+        setTimeout(function() {
+          scanLine.classList.add('scanning');
+          if (hudCorners) hudCorners.classList.add('hud-visible');
+        }, 150);
+        // Dissolve overlay
+        setTimeout(function() {
+          overlay.classList.add('boot-done');
+          // Reveal hero content after overlay finishes fading (1s transition)
+          setTimeout(function() {
+            var heroContent = document.querySelector('.hero-content');
+            if (heroContent) heroContent.classList.add('hero-revealed');
+          }, 1050);
+        }, 1000);
+        return;
+      }
+
+      var target = lines[lineIndex];
+      if (charIndex < target.length) {
+        currentLine += target[charIndex];
+        bootText.textContent = currentLine;
+        charIndex++;
+        setTimeout(typeLine, 14);
+      } else {
+        // Line done — pause then start new line
+        currentLine += '\n';
+        bootText.textContent = currentLine;
+        lineIndex++;
+        charIndex = 0;
+        setTimeout(typeLine, lineIndex === lines.length - 1 ? 250 : 80);
+      }
+    }
+
+    // Start quickly — map tiles are already loading in the background
+    setTimeout(typeLine, 200);
+  }
+
+  // Render Impact section based on IMPACT_DATA config
+  function renderImpact() {
+    const prelaunch = document.getElementById('impactPrelaunch');
+    const live = document.getElementById('impactLive');
+    if (!prelaunch || !live) return;
+
+    if (IMPACT_DATA.launched) {
+      prelaunch.style.display = 'none';
+      live.style.display = 'block';
+
+      // Populate live stats
+      var fields = {
+        'impactChapters': IMPACT_DATA.chaptersUnlocked,
+        'impactLbs': IMPACT_DATA.lbsRemoved.toLocaleString(),
+        'impactMiles': IMPACT_DATA.milesCleaned.toLocaleString(),
+        'impactDonations': IMPACT_DATA.donationsVerified,
+        'impactUSD': '$' + IMPACT_DATA.donationUSD.toLocaleString()
+      };
+      Object.keys(fields).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.textContent = fields[id];
+      });
+
+      // Populate milestones
+      var list = document.getElementById('milestoneList');
+      if (list && IMPACT_DATA.milestones.length > 0) {
+        list.textContent = '';
+        IMPACT_DATA.milestones.forEach(function(m) {
+          var item = document.createElement('div');
+          item.className = 'milestone-item';
+
+          var dateSpan = document.createElement('span');
+          dateSpan.className = 'milestone-date';
+          dateSpan.textContent = m.date;
+
+          var info = document.createElement('div');
+          info.className = 'milestone-info';
+
+          var title = document.createElement('strong');
+          title.textContent = m.title;
+
+          var loc = document.createElement('span');
+          loc.textContent = m.location;
+
+          var impact = document.createElement('em');
+          impact.textContent = m.impact;
+
+          info.appendChild(title);
+          info.appendChild(loc);
+          info.appendChild(impact);
+          item.appendChild(dateSpan);
+          item.appendChild(info);
+          list.appendChild(item);
+        });
+      }
+    } else {
+      prelaunch.style.display = 'block';
+      live.style.display = 'none';
+    }
+  }
+
+  // Initialize
+  document.addEventListener('DOMContentLoaded', function() {
+    originalLog('Captain Guido initialized');
+
+    document.body.classList.add('entry-active');
+    createOceanParticles();
+    renderImpact();
+    initializeMap();
+    initNavigation();
+
+    // Boot sequence fires the first time the map scrolls into view
+    var mapSection = document.getElementById('hero-map');
+    if (mapSection && window.IntersectionObserver) {
+      var bootRan = false;
+      var bootObserver = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting && !bootRan) {
+            bootRan = true;
+            bootObserver.disconnect();
+            runMapBootSequence();
+          }
+        });
+      }, { threshold: 0.15 });
+      bootObserver.observe(mapSection);
+    }
+    initSmoothScroll();
+    
+    // Shuffle animation
+    const shuffleTitle = document.getElementById('shuffleTitle');
+    if (shuffleTitle) {
+      setTimeout(function() {
+        shuffleText(shuffleTitle);
+      }, 500);
+    }
+    
+    // Entry button
+    const enterButton = document.getElementById('enterButton');
+    if (enterButton) {
+      enterButton.addEventListener('click', enterSite);
+    }
+    
+    // Tokenomics modal
+    const openTokenomicsBtn = document.getElementById('openTokenomics');
+    if (openTokenomicsBtn) {
+      openTokenomicsBtn.addEventListener('click', function() {
+        openModal('tokenomics-modal');
+      });
+    }
+
+    const footerTokenomics = document.getElementById('footerTokenomics');
+    if (footerTokenomics) {
+      footerTokenomics.addEventListener('click', function(e) {
+        e.preventDefault();
+        openModal('tokenomics-modal');
+      });
+    }
+    
+    // Whitepaper modal
+    const openWhitepaperBtn = document.getElementById('openWhitepaper');
+    if (openWhitepaperBtn) {
+      openWhitepaperBtn.addEventListener('click', function() {
+        openModal('whitepaper-modal');
+      });
+    }
+
+    const footerWhitepaper = document.getElementById('footerWhitepaper');
+    if (footerWhitepaper) {
+      footerWhitepaper.addEventListener('click', function(e) {
+        e.preventDefault();
+        openModal('whitepaper-modal');
+      });
+    }
+    
+    // Wallet modal
+    const walletConnectBtn = document.getElementById('walletConnectBtn');
+    if (walletConnectBtn) {
+      walletConnectBtn.addEventListener('click', function() {
+        openModal('wallet-modal');
+      });
+    }
+    
+    // Close buttons
+    document.querySelectorAll('.modal-close').forEach(function(btn) {
+      btn.addEventListener('click', closeAllModals);
+    });
+    
+    // Modal overlays
+    document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+      overlay.addEventListener('click', closeAllModals);
+    });
+    
+    // Wallet options
+    document.querySelectorAll('.wallet-option').forEach(function(option) {
+      option.addEventListener('click', function() {
+        const walletType = this.getAttribute('data-wallet');
+        if (walletType) {
+          connectWallet(walletType);
+        }
+      });
+    });
+
+    // ESC key closes modals
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeAllModals();
+      }
+    });
+
+    // Map stays permanently visible — no wash-away animation.
+
+    // ── PRESALE COUNTDOWN ─────────────────────────────────────────────────
+    // Target: July 1 2026 00:00:00 UTC
+    var presaleTarget = new Date('2026-07-01T00:00:00Z').getTime();
+
+    function updateCountdown() {
+      var now  = Date.now();
+      var diff = presaleTarget - now;
+
+      if (diff <= 0) {
+        // Presale is live — swap timer for launch message
+        var cd = document.getElementById('presaleCountdown');
+        if (cd) {
+          cd.textContent = '';
+          var liveMsg = document.createElement('p');
+          liveMsg.className = 'countdown-label countdown-label--live';
+          liveMsg.textContent = '🚀 PRESALE IS LIVE';
+          cd.appendChild(liveMsg);
+        }
+        return;
+      }
+
+      var days  = Math.floor(diff / (1000 * 60 * 60 * 24));
+      var hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      var mins  = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      var secs  = Math.floor((diff % (1000 * 60)) / 1000);
+
+      var dEl = document.getElementById('cdDays');
+      var hEl = document.getElementById('cdHours');
+      var mEl = document.getElementById('cdMins');
+      var sEl = document.getElementById('cdSecs');
+
+      if (dEl) dEl.textContent = String(days).padStart(3, '0');
+      if (hEl) hEl.textContent = String(hours).padStart(2, '0');
+      if (mEl) mEl.textContent = String(mins).padStart(2, '0');
+      if (sEl) sEl.textContent = String(secs).padStart(2, '0');
+    }
+
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
   });
-});
+
+})();
+
+console.log('Captain Guido Coin - Website Loaded');
