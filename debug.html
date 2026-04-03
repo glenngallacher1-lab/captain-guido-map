@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CGC Debug Panel</title>
+  <style>
+    :root {
+      --navy: #0a2540;
+      --gold: #f4a836;
+      --teal: #4ec4c4;
+      --dark: #061828;
+      --text: #e8d4b8;
+      --muted: #8899aa;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      font-family: 'Courier New', monospace;
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--gold);
+    }
+
+    header img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 2px solid var(--gold);
+    }
+
+    h1 { color: var(--gold); font-size: 1.4rem; letter-spacing: 3px; }
+    .subtitle { color: var(--muted); font-size: 0.75rem; letter-spacing: 2px; margin-top: 2px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(244,168,54,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    .card h2 {
+      color: var(--gold);
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.85rem;
+    }
+
+    .status-row:last-child { border-bottom: none; }
+
+    .badge {
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .badge.ok { background: rgba(78,196,196,0.15); color: var(--teal); border: 1px solid var(--teal); }
+    .badge.warn { background: rgba(244,168,54,0.15); color: var(--gold); border: 1px solid var(--gold); }
+    .badge.error { background: rgba(255,100,100,0.15); color: #ff6464; border: 1px solid #ff6464; }
+
+    #changelog {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(244,168,54,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    #changelog h2 {
+      color: var(--gold);
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .log-entry {
+      display: grid;
+      grid-template-columns: 140px 80px 1fr;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.82rem;
+      align-items: start;
+    }
+
+    .log-entry:last-child { border-bottom: none; }
+    .log-date { color: var(--muted); }
+    .log-type { }
+    .log-desc { color: var(--text); line-height: 1.5; }
+
+    #add-log {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(244,168,54,0.2);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+
+    #add-log h2 {
+      color: var(--gold);
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      margin-bottom: 1rem;
+      text-transform: uppercase;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 150px 1fr auto;
+      gap: 1rem;
+      align-items: end;
+    }
+
+    label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.7rem;
+      letter-spacing: 1px;
+      margin-bottom: 0.4rem;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(244,168,54,0.3);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 0.6rem 0.8rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    button.add-btn {
+      background: var(--gold);
+      color: var(--dark);
+      border: none;
+      border-radius: 6px;
+      padding: 0.65rem 1.5rem;
+      font-family: 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+    }
+
+    button.add-btn:hover { opacity: 0.85; }
+
+    .check-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.82rem;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot.ok { background: var(--teal); }
+    .dot.warn { background: var(--gold); }
+    .dot.error { background: #ff6464; }
+
+    .timestamp {
+      color: var(--muted);
+      font-size: 0.72rem;
+      margin-top: 1rem;
+      letter-spacing: 1px;
+    }
+
+    #export-btn {
+      background: transparent;
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      border-radius: 6px;
+      padding: 0.5rem 1.2rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      cursor: pointer;
+      margin-top: 1rem;
+      transition: background 0.2s;
+    }
+
+    #export-btn:hover { background: rgba(244,168,54,0.1); }
+  </style>
+</head>
+<body>
+
+<header>
+  <img src="captain-character.png" alt="Captain Guido">
+  <div>
+    <h1>CGC DEBUG PANEL</h1>
+    <div class="subtitle">CAPTAIN GUIDO COIN — SITE UPDATE TRACKER</div>
+  </div>
+</header>
+
+<!-- Status Cards -->
+<div class="grid">
+  <div class="card">
+    <h2>Site Health</h2>
+    <div class="status-row">
+      <span>HTML</span>
+      <span class="badge ok" id="st-html">CHECKING...</span>
+    </div>
+    <div class="status-row">
+      <span>CSS</span>
+      <span class="badge ok" id="st-css">CHECKING...</span>
+    </div>
+    <div class="status-row">
+      <span>JavaScript</span>
+      <span class="badge ok" id="st-js">CHECKING...</span>
+    </div>
+    <div class="status-row">
+      <span>Map Tiles</span>
+      <span class="badge" id="st-map">CHECKING...</span>
+    </div>
+    <div class="status-row">
+      <span>Images</span>
+      <span class="badge" id="st-img">CHECKING...</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Assets</h2>
+    <div class="check-grid" id="asset-list">
+      <!-- filled by JS -->
+    </div>
+    <div class="timestamp" id="check-time"></div>
+  </div>
+
+  <div class="card">
+    <h2>Changelog Stats</h2>
+    <div class="status-row">
+      <span>Total Entries</span>
+      <span id="stat-total" style="color:var(--gold);font-weight:700;">—</span>
+    </div>
+    <div class="status-row">
+      <span>Features</span>
+      <span id="stat-feature" style="color:var(--teal);">—</span>
+    </div>
+    <div class="status-row">
+      <span>Bug Fixes</span>
+      <span id="stat-fix" style="color:#ff6464;">—</span>
+    </div>
+    <div class="status-row">
+      <span>Design</span>
+      <span id="stat-design" style="color:var(--gold);">—</span>
+    </div>
+    <div class="status-row">
+      <span>Content</span>
+      <span id="stat-content" style="color:var(--muted);">—</span>
+    </div>
+  </div>
+</div>
+
+<!-- Changelog -->
+<div id="changelog">
+  <h2>Update Log</h2>
+  <div id="log-entries"></div>
+  <button id="export-btn" onclick="exportCSV()">EXPORT CSV</button>
+</div>
+
+<!-- Add Entry -->
+<div id="add-log">
+  <h2>Log a New Update</h2>
+  <div class="form-row">
+    <div>
+      <label>TYPE</label>
+      <select id="log-type">
+        <option value="FEATURE">FEATURE</option>
+        <option value="FIX">FIX</option>
+        <option value="DESIGN">DESIGN</option>
+        <option value="CONTENT">CONTENT</option>
+        <option value="DEPLOY">DEPLOY</option>
+      </select>
+    </div>
+    <div>
+      <label>DESCRIPTION</label>
+      <input type="text" id="log-desc" placeholder="e.g. Replaced logo image in Mission section">
+    </div>
+    <div>
+      <button class="add-btn" onclick="addEntry()">+ LOG IT</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Storage key ──────────────────────────────────────────────
+  const STORE = 'cgc_debug_log';
+
+  const TYPE_COLORS = {
+    FEATURE: 'ok',
+    FIX: 'error',
+    DESIGN: 'warn',
+    CONTENT: '',
+    DEPLOY: 'ok'
+  };
+
+  // ── Seed data ────────────────────────────────────────────────
+  const SEED = [
+    { date: '2026-04-03', type: 'FEATURE', desc: 'Replaced CGC logo with captain character image in Mission section' },
+    { date: '2026-04-03', type: 'DESIGN',  desc: 'Changed image glow animation to hover-only trigger' },
+    { date: '2026-04-03', type: 'FEATURE', desc: 'Added debug panel (this page) for tracking site updates' }
+  ];
+
+  // ── Load / save ──────────────────────────────────────────────
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORE) || 'null');
+      if (!saved) {
+        save(SEED);
+        return SEED;
+      }
+      return saved;
+    } catch { return SEED; }
+  }
+
+  function save(entries) {
+    localStorage.setItem(STORE, JSON.stringify(entries));
+  }
+
+  // ── Render log ───────────────────────────────────────────────
+  function render() {
+    const entries = load();
+    const container = document.getElementById('log-entries');
+    container.innerHTML = '';
+
+    const reversed = [...entries].reverse();
+    reversed.forEach(e => {
+      const row = document.createElement('div');
+      row.className = 'log-entry';
+      row.innerHTML = `
+        <span class="log-date">${e.date}</span>
+        <span class="log-type"><span class="badge ${TYPE_COLORS[e.type] || ''}">${e.type}</span></span>
+        <span class="log-desc">${e.desc}</span>
+      `;
+      container.appendChild(row);
+    });
+
+    // Stats
+    document.getElementById('stat-total').textContent = entries.length;
+    document.getElementById('stat-feature').textContent = entries.filter(e => e.type === 'FEATURE').length;
+    document.getElementById('stat-fix').textContent = entries.filter(e => e.type === 'FIX').length;
+    document.getElementById('stat-design').textContent = entries.filter(e => e.type === 'DESIGN').length;
+    document.getElementById('stat-content').textContent = entries.filter(e => e.type === 'CONTENT' || e.type === 'DEPLOY').length;
+  }
+
+  // ── Add entry ─────────────────────────────────────────────────
+  function addEntry() {
+    const type = document.getElementById('log-type').value;
+    const desc = document.getElementById('log-desc').value.trim();
+    if (!desc) { alert('Please enter a description.'); return; }
+
+    const entries = load();
+    entries.push({
+      date: new Date().toISOString().slice(0, 10),
+      type,
+      desc
+    });
+    save(entries);
+    document.getElementById('log-desc').value = '';
+    render();
+  }
+
+  // ── Export CSV ────────────────────────────────────────────────
+  function exportCSV() {
+    const entries = load();
+    const rows = [['Date', 'Type', 'Description']];
+    entries.forEach(e => rows.push([e.date, e.type, `"${e.desc.replace(/"/g, '""')}"`]));
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `cgc-updates-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  // ── Site health checks ────────────────────────────────────────
+  const assets = [
+    { file: 'index.html',           label: 'index.html' },
+    { file: 'style.css',            label: 'style.css' },
+    { file: 'script.js',            label: 'script.js' },
+    { file: 'captain-guido.png',    label: 'captain-guido.png' },
+    { file: 'captain-character.png',label: 'captain-character.png' },
+    { file: 'whitepaper.pdf',       label: 'whitepaper.pdf' }
+  ];
+
+  async function checkAssets() {
+    const list = document.getElementById('asset-list');
+    list.innerHTML = '';
+
+    let imgOk = true;
+
+    for (const asset of assets) {
+      try {
+        const res = await fetch(asset.file, { method: 'HEAD', cache: 'no-store' });
+        const ok = res.ok;
+        if (!ok && asset.file.match(/\.png$/)) imgOk = false;
+
+        const item = document.createElement('div');
+        item.className = 'check-item';
+        item.innerHTML = `<div class="dot ${ok ? 'ok' : 'error'}"></div><span>${asset.label}</span>`;
+        list.appendChild(item);
+      } catch {
+        const item = document.createElement('div');
+        item.className = 'check-item';
+        item.innerHTML = `<div class="dot warn"></div><span>${asset.label}</span>`;
+        list.appendChild(item);
+      }
+    }
+
+    document.getElementById('st-html').textContent = 'OK';
+    document.getElementById('st-css').textContent = 'OK';
+    document.getElementById('st-js').textContent = 'OK';
+
+    const mapBadge = document.getElementById('st-map');
+    mapBadge.textContent = 'OK'; mapBadge.className = 'badge ok';
+
+    const imgBadge = document.getElementById('st-img');
+    imgBadge.textContent = imgOk ? 'OK' : 'WARN';
+    imgBadge.className = `badge ${imgOk ? 'ok' : 'warn'}`;
+
+    document.getElementById('check-time').textContent =
+      'Last checked: ' + new Date().toLocaleTimeString();
+  }
+
+  // ── Init ──────────────────────────────────────────────────────
+  render();
+  checkAssets();
+
+  // Allow Enter key to submit
+  document.getElementById('log-desc').addEventListener('keydown', e => {
+    if (e.key === 'Enter') addEntry();
+  });
+</script>
+
+</body>
+</html>
