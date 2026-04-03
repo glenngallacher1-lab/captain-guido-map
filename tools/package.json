@@ -1,0 +1,13 @@
+{
+  "name": "cgc-sheets-sync",
+  "version": "1.0.0",
+  "description": "Push CGC data to Google Sheets",
+  "main": "sync.js",
+  "scripts": {
+    "auth": "node auth.js",
+    "sync": "node sync.js"
+  },
+  "dependencies": {
+    "googleapis": "^144.0.0"
+  }
+}
